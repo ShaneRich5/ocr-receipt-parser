@@ -1,19 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useDropzone } from 'react-dropzone'
 import Tesseract, { createWorker } from 'tesseract.js';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Skeleton } from './components/ui/skeleton';
 import { ReceiptItem } from './lib/interfaces';
 import { transformTesseractRecognizeResultToReceiptItems } from './lib/utils';
 import ReceiptPreview from '@/components/ReceiptPreview';
 import FileUpload from '@/components/FileUpload';
-import { Image } from '@nextui-org/react';
 import { Badge } from "@/components/ui/badge"
-import { Divider } from "@nextui-org/react";
 import OcrStatus from '@/components/OcrStatus';
 import OcrRawData from './components/OcrRawData';
+import ReceiptLoading from './components/ReceiptLoading';
+import ImagePreview from './components/ImagePreview';
 
 function App() {
   const [imageData, setImageData] = useState<null | string>(null)
@@ -97,43 +94,15 @@ function App() {
       <div className="grid grid-cols-2 mt-2 gap-4">
         <div className='col-span-2 md:col-span-1'>
           {!imageData && <FileUpload onDrop={onDrop} />}
-          <div className='space-x-2 flex my-2'>
+          <div className='space-x-2 flex mb-4'>
             <Button type="button" className='w-full' disabled={!imageData} onClick={() => setImageData(null)}>Clear File</Button>
-            <Button type="button" className='w-full' disabled={!imageData || !workerRef.current} onClick={handleExtract}>
-              Extract
-            </Button>
+            <Button type="button" className='w-full' disabled={!imageData || !workerRef.current} onClick={handleExtract}>Extract</Button>
           </div>
-          {imageData &&
-            <div className='mt-4'>
-              <Divider className='mb-4' />
-              <h3 className='font-mono text-1xl mb-2 font-semibold'>Image Preview | Click the extract button above to parse the details</h3>
-              <div className='flex justify-center'>
-                <Image
-                  className='h-72 md:h-full'
-                  alt="Image to be processed"
-                  src={imageData}
-                />
-              </div>
-            </div>
-          }
+          {imageData && <ImagePreview src={imageData} />}
         </div>
         <div className='col-span-2 md:col-span-1 space-y-4'>
           <OcrStatus status={parseResults.status} progress={parseResults.progress} />
-
-          {isReceiptLoading &&
-            <Card>
-              <CardHeader>
-                <CardTitle><Skeleton className="h-6 w-[130px] bg-slate-200" /></CardTitle>
-                <CardTitle><Skeleton className="h-4 w-[230px] bg-slate-200" /></CardTitle>
-              </CardHeader>
-              <CardContent className='space-y-2'>
-                <Skeleton className="h-4 w-full bg-slate-200" />
-                <Skeleton className="h-4 w-full bg-slate-200" />
-                <Skeleton className="h-4 w-full bg-slate-200" />
-              </CardContent>
-            </Card>
-          }
-
+          {isReceiptLoading && <ReceiptLoading />}
           {(hasReceiptLoaded && tesseractRecognizeResult) &&
             <Tabs defaultValue="formatted-receipt" className="w-full">
               <TabsList className='w-full'>
