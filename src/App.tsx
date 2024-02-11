@@ -3,11 +3,17 @@ import { useDropzone } from 'react-dropzone'
 import Tesseract, { createWorker } from 'tesseract.js';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from './components/ui/skeleton';
 import { ReceiptItem } from './lib/interfaces';
 import { transformTesseractRecognizeResultToReceiptItems } from './lib/utils';
 import ReceiptPreview from '@/components/ReceiptPreview';
 import FileUpload from '@/components/FileUpload';
+import { Image } from '@nextui-org/react';
+import { Badge } from "@/components/ui/badge"
+import { Divider } from "@nextui-org/react";
+import OcrStatus from '@/components/OcrStatus';
+import OcrRawData from './components/OcrRawData';
 
 function App() {
   const [imageData, setImageData] = useState<null | string>(null)
@@ -64,64 +70,83 @@ function App() {
     }
   }, [])
 
-
-
   let receiptItems: ReceiptItem[] = []
 
   if (tesseractRecognizeResult) {
     receiptItems = transformTesseractRecognizeResultToReceiptItems(tesseractRecognizeResult)
   }
 
+  const isTesseractLoading = parseResults.status === 'loading tesseract core'
+    || parseResults.status === 'loading language traineddata'
+    || (parseResults.status === 'initializing tesseract' && parseResults.progress < 1);
+
+  const isReceiptLoading = parseResults.status === 'recognizing text' && parseResults.progress < 1;
+  const hasReceiptLoaded = parseResults.status === 'recognizing text' && parseResults.progress === 1;
+
   return (
     <div className="p-4">
-      <h1 className="font-mono font-bold text-2xl">Receipt Parser Demo</h1>
-      <div className="grid grid-cols-2">
-        <div>
+      <div className='flex space-x-2'>
+        <h1 className="font-mono font-bold text-2xl">Receipt Parser Demo</h1>
+        <span>
+          {(isTesseractLoading || !workerRef.current)
+            ? <Badge variant="destructive">Loading Tesseract</Badge>
+            : <Badge variant="secondary">Tesseract Loaded</Badge>
+          }
+        </span>
+      </div>
+      <div className="grid grid-cols-2 mt-2 gap-4">
+        <div className='col-span-2 md:col-span-1'>
           <FileUpload onDrop={onDrop} />
           <div className='space-x-2 flex my-2'>
             <Button type="button" className='w-full' disabled={!imageData} onClick={() => setImageData(null)}>Clear File</Button>
-            <Button type="button" className='w-full' disabled={!imageData || !workerRef.current} onClick={handleExtract}>Extract</Button>
+            <Button type="button" className='w-full' disabled={!imageData || !workerRef.current} onClick={handleExtract}>
+              Extract
+            </Button>
           </div>
-          {imageData && <img src={imageData} className='h-72' />}
+          {imageData &&
+            <div className='mt-4'>
+              <Divider className='mb-4' />
+              <h3 className='font-mono text-1xl mb-2 font-semibold'>Image Preview | Click the extract button above to parse the details</h3>
+              <Image
+                alt="Image to be processed"
+                src={imageData}
+              />
+            </div>
+          }
+        </div>
+        <div className='col-span-2 md:col-span-1 space-y-4'>
+          <OcrStatus status={parseResults.status} progress={parseResults.progress} />
+
+          {isReceiptLoading &&
+            <Card>
+              <CardHeader>
+                <CardTitle><Skeleton className="h-6 w-[130px] bg-slate-200" /></CardTitle>
+                <CardTitle><Skeleton className="h-4 w-[230px] bg-slate-200" /></CardTitle>
+              </CardHeader>
+              <CardContent className='space-y-2'>
+                <Skeleton className="h-4 w-full bg-slate-200" />
+                <Skeleton className="h-4 w-full bg-slate-200" />
+                <Skeleton className="h-4 w-full bg-slate-200" />
+              </CardContent>
+            </Card>
+          }
+
+          {(hasReceiptLoaded && tesseractRecognizeResult) &&
+            <Tabs defaultValue="formatted-receipt" className="w-full">
+              <TabsList className='w-full'>
+                <TabsTrigger value="formatted-receipt" className='w-full'>Formatted Receipt</TabsTrigger>
+                <TabsTrigger value="raw-data" className='w-full'>Raw Data</TabsTrigger>
+              </TabsList>
+              <TabsContent value="formatted-receipt">
+                <ReceiptPreview receiptItems={receiptItems} />
+              </TabsContent>
+              <TabsContent value="raw-data">
+                <OcrRawData content={tesseractRecognizeResult.data.text} />
+              </TabsContent>
+            </Tabs>
+          }
         </div>
       </div>
-
-
-      {/* <Card className='h-72'>
-        <div className='my-4 w-full flex justify-center'>
-          <div className=' flex flex-col space-y-2'>
-            <Skeleton className="h-[125px] w-[250px] rounded-xl" />
-            <Skeleton className="h-4 w-[250px]" />
-            <Skeleton className="h-4 w-[200px]" />
-          </div>
-        </div>
-      </Card> */}
-
-
-
-      <p>{parseResults.status.toUpperCase()} |{parseResults.progress * 100}</p>
-
-      {!!tesseractRecognizeResult &&
-        <Card>
-          <CardHeader>
-            <CardTitle>OCR Result</CardTitle>
-            <CardDescription>Extracted text from the image</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div>
-              <h2 className='text-xl'>Raw Content</h2>
-              <p className='font-mono'>{tesseractRecognizeResult.data.text}</p>
-            </div>
-
-            {tesseractRecognizeResult &&
-              <ReceiptPreview
-                receiptItems={receiptItems}
-              />
-            }
-          </CardContent>
-        </Card>
-      }
-
     </div>
   )
 }
