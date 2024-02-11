@@ -108,6 +108,7 @@ function App() {
               <Divider className='mb-4' />
               <h3 className='font-mono text-1xl mb-2 font-semibold'>Image Preview | Click the extract button above to parse the details</h3>
               <Image
+                className='h-72 md:h-full'
                 alt="Image to be processed"
                 src={imageData}
               />
