@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import './App.css'
-import Dropzone, { useDropzone } from 'react-dropzone'
+import { useDropzone } from 'react-dropzone'
 import Tesseract, { createWorker } from 'tesseract.js';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,7 +10,6 @@ import { transformTesseractRecognizeResultToReceiptItems } from './lib/utils';
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -23,34 +22,67 @@ interface ReceiptProps {
 }
 
 const Receipt: React.FC<ReceiptProps> = ({ receiptItems }) => {
+  let individualItems: ReceiptItem[] = []
+  let subtotal = 0;
+  let tip = 0;
+  let total = 0;
+
+  receiptItems.forEach((item) => {
+    const itemName = item.name.toLowerCase();
+
+    if (itemName.includes('tip')) {
+      tip = item.cost;
+    } else if (itemName.includes('subtotal')) {
+      subtotal = item.cost;
+    } else if (itemName.includes('total')) {
+      total = item.cost;
+    } else {
+      individualItems.push(item);
+    }
+  })
 
   return (
-    // <ol className="text-left ml-5">
-    //   {receiptItems.map((item, idx) =>
-    //     <li key={idx} className="list-decimal">{item.name} | {item.cost} | {item.quantity}</li>
-    //   )}
-    // </ol>
-    <Table>
-      <TableCaption>A list of your recent invoices.</TableCaption>
-      <TableHeader>
-        <TableRow>
-          <TableHead className="w-[100px]">Item</TableHead>
-          <TableHead>Quantity</TableHead>
-          <TableHead className="text-right">Amount</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {receiptItems.map((item, idx) =>
-          <TableRow>
-            <TableCell className="font-medium"></TableCell>
-
-            <TableCell>Credit Card</TableCell>
-            <TableCell className="text-right">$250.00</TableCell>
-          </TableRow>
-        )}
-      </TableBody>
-    </Table>
-
+    <Card>
+      <CardHeader>
+        <CardTitle>Receipt</CardTitle>
+        <CardDescription>OCR Results</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[100px]">Item</TableHead>
+              <TableHead>Quantity</TableHead>
+              <TableHead className="text-left">Amount</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {individualItems.map((item, idx) =>
+              <TableRow key={`${idx}-${item.name}`}>
+                <TableCell className="font-medium">{item.name}</TableCell>
+                <TableCell>{item.quantity}</TableCell>
+                <TableCell className="text-left">${item.cost.toFixed(2)}</TableCell>
+              </TableRow>
+            )}
+            <TableRow>
+              <TableCell className="font-medium">Subtotal</TableCell>
+              <TableCell></TableCell>
+              <TableCell className="text-left">${subtotal.toFixed(2)}</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell className="font-medium">Tip</TableCell>
+              <TableCell></TableCell>
+              <TableCell className="text-left">${tip.toFixed(2)}</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell className="font-medium">Total</TableCell>
+              <TableCell></TableCell>
+              <TableCell className="text-left">${total.toFixed(2)}</TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
   )
 }
 
@@ -118,7 +150,7 @@ function App() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 p-4">
       {/* Dropzone */}
       <div {...getRootProps()} className="flex items-center justify-center w-full">
         <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
@@ -130,16 +162,6 @@ function App() {
           <input {...getInputProps()} id="dropzone-file" type="file" className="hidden" />
         </label>
       </div>
-
-
-      <Receipt
-        receiptItems={[
-          { cost: 50, name: 'item 1', quantity: 1 },
-          { cost: 100, name: 'item 2', quantity: 1 },
-          { cost: 150, name: 'item 3', quantity: 2 },
-        ]}
-      />
-
 
       {imageData && <img src={imageData} className='h-72' />}
 
