@@ -96,7 +96,7 @@ function App() {
       </div>
       <div className="grid grid-cols-2 mt-2 gap-4">
         <div className='col-span-2 md:col-span-1'>
-          <FileUpload onDrop={onDrop} />
+          {!imageData && <FileUpload onDrop={onDrop} />}
           <div className='space-x-2 flex my-2'>
             <Button type="button" className='w-full' disabled={!imageData} onClick={() => setImageData(null)}>Clear File</Button>
             <Button type="button" className='w-full' disabled={!imageData || !workerRef.current} onClick={handleExtract}>
@@ -107,11 +107,13 @@ function App() {
             <div className='mt-4'>
               <Divider className='mb-4' />
               <h3 className='font-mono text-1xl mb-2 font-semibold'>Image Preview | Click the extract button above to parse the details</h3>
-              <Image
-                className='h-72 md:h-full'
-                alt="Image to be processed"
-                src={imageData}
-              />
+              <div className='flex justify-center'>
+                <Image
+                  className='h-72 md:h-full'
+                  alt="Image to be processed"
+                  src={imageData}
+                />
+              </div>
             </div>
           }
         </div>
