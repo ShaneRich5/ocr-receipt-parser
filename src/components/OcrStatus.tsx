@@ -1,4 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { capitalize } from '../lib/utils';
 
 interface OcrStatusProps {
   status: string
@@ -13,8 +14,8 @@ const OcrStatus: React.FC<OcrStatusProps> = ({ status, progress }) => (
     </CardHeader>
     <CardContent>
       <div className='flex flex-col space-y-2'>
-        <p>Status: {status}</p>
-        <p>Progress: {progress * 100}%</p>
+        <p>Status: {capitalize(status)}</p>
+        <p>Progress: {(progress * 100).toFixed(0)}%</p>
       </div>
     </CardContent>
   </Card>

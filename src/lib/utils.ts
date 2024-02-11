@@ -6,6 +6,8 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+export const capitalize = (str: string) => str.split(' ').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ')
+
 // simple implementation of a parser for the tesseract recognize result
 export const transformTesseractRecognizeResultToReceiptItems = (result: Tesseract.RecognizeResult): ReceiptItem[] => {
   const currencyRegex = /(?<=\$)\d+(\.\d+)?/g;

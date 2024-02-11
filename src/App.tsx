@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Tesseract, { createWorker } from 'tesseract.js';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ReceiptItem } from './lib/interfaces';
 import { transformTesseractRecognizeResultToReceiptItems } from './lib/utils';
 import ReceiptPreview from '@/components/ReceiptPreview';
