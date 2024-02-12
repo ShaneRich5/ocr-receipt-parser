@@ -14,7 +14,7 @@ export const transformTesseractRecognizeResultToReceiptItems = (result: Tesserac
   const nameRegex = /[^|$0-9.-]+/g;
   const quantityRegex = /^\d+/g;
 
-  return result.data.lines.map((line, index) => {
+  return result.data.lines.map((line) => {
     const cost = line.text.match(currencyRegex)
     const name = line.text.match(nameRegex)
     const quantity = line.text.match(quantityRegex)
